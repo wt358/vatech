@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     df0.show(truncate=False)
     name_list = [(row.name) for row in df0.select("name").collect()]
-
+    print("git test")
     price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
     df0=genFakeChartData(df0,name_list,price_dic)
     df0.orderBy("date",ascending=False).show(truncate=False)
