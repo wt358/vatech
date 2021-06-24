@@ -30,6 +30,33 @@ if __name__ == "__main__":
         .option("recursiveFileLookup", "true")
         .load(args.input.split(","))
     )
+    print("chart data")
+    df0.show(truncate=False)
+    '''
+    df1 = (
+        sq.read.format(args.inputformat)
+        .option("recursiveFileLookup", "true")
+        .load("parquet1".split(","))
+    )
+    print("receipt data")
+    df1.show(truncate=False)
+    print("join with patient id")
+    df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").show(truncate=False)
+    print("the count of the treatment new patient taken")
+    df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").where(df1["exiting"]=="1").groupBy("name").count().orderBy("count",ascending=False).show(truncate=False)
+    
+    print("the price sum of the treatment new patient taken")
+    df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").where(df1["exiting"]=="1").groupBy("name").agg({"price": "sum"}).orderBy(
+        "sum(price)", ascending=False
+    ).show(truncate=False)
+    print("the count of the treatment old patient taken")
+    df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").where(df1["exiting"]=="2").groupBy("name").count().orderBy("count",ascending=False).show(truncate=False)
+    
+    print("the price sum of the treatment old patient taken")
+    df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").where(df1["exiting"]=="2").groupBy("name").agg({"price": "sum"}).orderBy(
+        "sum(price)", ascending=False
+    ).show(truncate=False)
+    '''
     df0.groupBy("name").count().orderBy("count", ascending=False).show(truncate=False)
     df0.groupBy("name").agg({"price": "sum"}).orderBy(
         "sum(price)", ascending=False

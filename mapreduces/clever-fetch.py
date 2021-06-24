@@ -133,6 +133,23 @@ def genFakeChartData(df0,name_list,price_dic):
         newRow1=[today,hospital,patientID,name,price]
         newRow.append(newRow1)
     df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
+    df0 = df1.union(df0)
+    return df0
+def genFakeReceiptData(df0,name_list,price_dic):
+    today=date.today().strftime("%Y%m%d")
+    hospital="vatech"
+    patientID=fake.word(ext_word_list=patient_list)
+    name=fake.word(ext_word_list=name_list)
+    price = int(price_dic[name])
+    spark = SparkSession.builder.appName("newdata").getOrCreate()
+    newRow=[[today,hospital,patientID,name,price]]
+    for i in range(15000):
+        patientID=fake.word(ext_word_list=patient_list)
+        name=fake.word(ext_word_list=name_list)
+        price = int(price_dic[name])
+        newRow1=[today,hospital,patientID,name,price]
+        newRow.append(newRow1)
+    df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
     df0 = df0.union(df1)
     return df0
 
@@ -219,15 +236,14 @@ if __name__ == "__main__":
 
     if args.target == "treats":
         df0 = getCleverChartTreats(df0)
+        name_list = [(row.name) for row in df0.select("name").collect()]
+        price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
+        df0=genFakeChartData(df0,name_list,price_dic)
     elif args.target == "receipt":
         df0 = getCleverReceipts(df0)
     df0.printSchema()
 
     df0.show(truncate=False)
-    name_list = [(row.name) for row in df0.select("name").collect()]
-    print("git test")
-    price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
-    df0=genFakeChartData(df0,name_list,price_dic)
-    df0.orderBy("date",ascending=False).show(truncate=False)
+    
     print(df0.count())
     df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
