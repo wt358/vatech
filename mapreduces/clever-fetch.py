@@ -4,7 +4,25 @@ from datetime import datetime
 from pyspark import SparkContext, SQLContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
+from pyspark.sql import *
 from pyspark.sql.functions import udf, col, from_json, flatten, explode
+from faker import Faker
+from faker.providers import internet
+from datetime import date
+from pandas import DataFrame
+patient_list=[
+            "5819294f-bd03-4f54-bf6a-1ceea59f331b",
+            "79d30a59-3019-4aa9-b1f4-de716250f81e",
+            "dafb8840-14cb-4b4e-9020-487011abacae",
+            "4d060a7d-ad40-4305-905e-afa1feeb14f9",
+            "fbbd93ef-72bd-4621-9597-8b3324ed1aca",
+            "eac0e1b9-4c68-4138-a89c-5a5f1ce7c6a3",
+            "c953c6a1-5fac-4c4a-89a3-b472c4e25181",
+            "4d060a7d-ad40-4305-905e-afa1feeb14f9",
+        ]
+fake=Faker()
+for i in range(250):
+    patient_list.append(fake.uuid4())
 
 
 def getCleverSchema(collection):
@@ -100,6 +118,23 @@ def getCleverReceipts(df0):
     ).orderBy("date", ascending=False)
     return df0
 
+def genFakeChartData(df0,name_list,price_dic):
+    today=date.today().strftime("%Y%m%d")
+    hospital="vatech"
+    patientID=fake.word(ext_word_list=patient_list)
+    name=fake.word(ext_word_list=name_list)
+    price = int(price_dic[name])
+    spark = SparkSession.builder.appName("newdata").getOrCreate()
+    newRow=[[today,hospital,patientID,name,price]]
+    for i in range(15000):
+        patientID=fake.word(ext_word_list=patient_list)
+        name=fake.word(ext_word_list=name_list)
+        price = int(price_dic[name])
+        newRow1=[today,hospital,patientID,name,price]
+        newRow.append(newRow1)
+    df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
+    df0 = df0.union(df1)
+    return df0
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -169,18 +204,30 @@ if __name__ == "__main__":
             s3url = s3url + "/month={:02d}".format(args.month)
             if args.day > 0:
                 s3url = s3url + "/day={:02d}".format(args.day)
+    print("today is ")
+    print(date.today().strftime("%Y%m%d"))
+    
 
     df0 = sq.read.format(args.inputformat).load(s3url)
+    df0.printSchema()
     df0 = df0.filter(df0["operationType"] == "insert")
     df0 = df0.withColumn(
         "document", from_json(col("fullDocument"), getCleverSchema(args.collection))
     )
     df0 = df0.select("document.*")
+    df0.printSchema()
 
     if args.target == "treats":
         df0 = getCleverChartTreats(df0)
     elif args.target == "receipt":
         df0 = getCleverReceipts(df0)
-    df0.show(truncate=False)
+    df0.printSchema()
 
+    df0.show(truncate=False)
+    name_list = [(row.name) for row in df0.select("name").collect()]
+
+    price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
+    df0=genFakeChartData(df0,name_list,price_dic)
+    df0.orderBy("date",ascending=False).show(truncate=False)
+    print(df0.count())
     df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
