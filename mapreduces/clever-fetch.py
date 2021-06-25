@@ -135,22 +135,28 @@ def genFakeChartData(df0,name_list,price_dic):
     df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
     df0 = df1.union(df0)
     return df0
-def genFakeReceiptData(df0,name_list,price_dic):
+def genFakeReceiptData(df0,exiting_dic):
     today=date.today().strftime("%Y%m%d")
     hospital="vatech"
     patientID=fake.word(ext_word_list=patient_list)
-    name=fake.word(ext_word_list=name_list)
-    price = int(price_dic[name])
     spark = SparkSession.builder.appName("newdata").getOrCreate()
-    newRow=[[today,hospital,patientID,name,price]]
+    if patientID in exiting_dic:
+        exiting = exiting_dic[patientID]
+    else:
+        exiting_dic[patientID]=2;
+        exiting = 1;
+    newRow=[[today,hospital,patientID,exiting]]
     for i in range(15000):
         patientID=fake.word(ext_word_list=patient_list)
-        name=fake.word(ext_word_list=name_list)
-        price = int(price_dic[name])
-        newRow1=[today,hospital,patientID,name,price]
+        if patientID in exiting_dic:
+            exiting = exiting_dic[patientID]
+        else:
+            exiting_dic[patientID]=2;
+            exiting = 1;
+        newRow1=[today,hospital,patientID,exiting]
         newRow.append(newRow1)
-    df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
-    df0 = df0.union(df1)
+    df1 = spark.createDataFrame(newRow,['date','hospital','patient','exiting'])
+    df0 = df1.union(df0)
     return df0
 
 if __name__ == "__main__":
@@ -241,6 +247,8 @@ if __name__ == "__main__":
         df0=genFakeChartData(df0,name_list,price_dic)
     elif args.target == "receipt":
         df0 = getCleverReceipts(df0)
+        exiting_dic = {row.patient:2 for row in df0.select("patient").collect()}
+        df0 = genFakeReceiptData(df0,exiting_dic)
     df0.printSchema()
 
     df0.show(truncate=False)
