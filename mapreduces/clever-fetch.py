@@ -127,6 +127,7 @@ if __name__ == "__main__":
         "-of", "--outputformat", help="output format", default="parquet"
     )
     parser.add_argument("-o", "--output", help="output path", default="parquet")
+    parser.add_argument("-p", "--partitions", help="output partitions")
     parser.add_argument(
         "-u",
         "--minio",
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     sq = (
-        SparkSession.builder.appName("fetch")
+        SparkSession.builder.appName("clever-fetch")
         .config(
             "spark.hadoop.fs.s3a.access.key",
             os.environ.get("MINIO_ACCESS_KEY", "haruband"),
@@ -153,7 +154,7 @@ if __name__ == "__main__":
             os.environ.get("MINIO_SECRET_KEY", "haru1004"),
         )
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
-        .config("spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", args.minio)
         .config("es.nodes", args.elasticsearch)
         .config("es.nodes.discovery", "true")
@@ -183,4 +184,11 @@ if __name__ == "__main__":
         df0 = getCleverReceipts(df0)
     df0.show(truncate=False)
 
-    df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
+    if args.partitions:
+        df0.coalesce(1).write.partitionBy(args.partitions.split(",")).format(
+            args.outputformat
+        ).mode("overwrite").save(args.output)
+    else:
+        df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(
+            args.output
+        )

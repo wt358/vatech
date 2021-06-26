@@ -19,30 +19,10 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", help="input path", default="parquet")
     parser.add_argument("-p", "--partitions", help="input partitions", default="")
     parser.add_argument("-f", "--filters", help="input filters")
-    parser.add_argument(
-        "-u",
-        "--minio",
-        help="minio url",
-        default="https://minio.develop.vsmart00.com",
-    )
     parser.add_argument("-l", "--loglevel", help="log level", default="ERROR")
     args = parser.parse_args()
 
-    sq = (
-        SparkSession.builder.appName("clever-query")
-        .config(
-            "spark.hadoop.fs.s3a.access.key",
-            os.environ.get("MINIO_ACCESS_KEY", "haruband"),
-        )
-        .config(
-            "spark.hadoop.fs.s3a.secret.key",
-            os.environ.get("MINIO_SECRET_KEY", "haru1004"),
-        )
-        .config("spark.hadoop.fs.s3a.path.style.access", "true")
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        .config("spark.hadoop.fs.s3a.endpoint", args.minio)
-        .getOrCreate()
-    )
+    sq = SparkSession.builder.appName("clever-sql").getOrCreate()
     sq.sparkContext.setLogLevel(args.loglevel)
 
     ts0 = timeit.default_timer()
@@ -56,11 +36,14 @@ if __name__ == "__main__":
         for kv in args.filters.split(","):
             k, v = kv.split("=")
             df0 = df0.filter(df0[k] == v)
-    df0.groupBy("name").count().orderBy("count", ascending=False).show(truncate=False)
-    df0.groupBy("name").agg({"price": "sum"}).orderBy(
-        "sum(price)", ascending=False
-    ).show(truncate=False)
-    df0.explain(False)
+    df0.createOrReplaceTempView("clever")
+
+    sq.sql("select name, count(name) as count from clever group by name").show(
+        truncate=False
+    )
+    sq.sql("select name, sum(price) as count from clever group by name").show(
+        truncate=False
+    )
 
     ts1 = timeit.default_timer()
 

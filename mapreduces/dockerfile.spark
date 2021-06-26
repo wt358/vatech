@@ -1,3 +1,0 @@
-FROM cleverpms/spark-py:base
-
-COPY *.py /opt/spark/work-dir
