@@ -126,7 +126,7 @@ def genFakeChartData(df0,name_list,price_dic):
     price = int(price_dic[name])
     spark = SparkSession.builder.appName("newdata").getOrCreate()
     newRow=[[today,hospital,patientID,name,price]]
-    for i in range(15000):
+    for i in range(150000):
         patientID=fake.word(ext_word_list=patient_list)
         name=fake.word(ext_word_list=name_list)
         price = int(price_dic[name])
@@ -146,7 +146,7 @@ def genFakeReceiptData(df0,exiting_dic):
         exiting_dic[patientID]=2;
         exiting = 1;
     newRow=[[today,hospital,patientID,exiting]]
-    for i in range(15000):
+    for i in range(150000):
         patientID=fake.word(ext_word_list=patient_list)
         if patientID in exiting_dic:
             exiting = exiting_dic[patientID]
