@@ -162,6 +162,7 @@ if __name__ == "__main__":
         "-of", "--outputformat", help="output format", default="parquet"
     )
     parser.add_argument("-o", "--output", help="output path", default="parquet")
+    parser.add_argument("-p", "--partitions", help="output partitions")
     parser.add_argument(
         "-u",
         "--minio",
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     sq = (
-        SparkSession.builder.appName("fetch")
+        SparkSession.builder.appName("clever-fetch")
         .config(
             "spark.hadoop.fs.s3a.access.key",
             os.environ.get("MINIO_ACCESS_KEY", "haruband"),
@@ -188,7 +189,7 @@ if __name__ == "__main__":
             os.environ.get("MINIO_SECRET_KEY", "haru1004"),
         )
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
-        .config("spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
         .config("spark.hadoop.fs.s3a.endpoint", args.minio)
         .config("es.nodes", args.elasticsearch)
         .config("es.nodes.discovery", "true")
@@ -226,8 +227,17 @@ if __name__ == "__main__":
     df0.show(truncate=False)
     name_list = [(row.name) for row in df0.select("name").collect()]
 
+'''
     price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
     df0=genFakeChartData(df0,name_list,price_dic)
     df0.orderBy("date",ascending=False).show(truncate=False)
     print(df0.count())
-    df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
+'''
+    if args.partitions:
+        df0.coalesce(1).write.partitionBy(args.partitions.split(",")).format(
+            args.outputformat
+        ).mode("overwrite").save(args.output)
+    else:
+        df0.coalesce(1).write.format(args.outputformat).mode("overwrite").save(
+            args.output
+        )
