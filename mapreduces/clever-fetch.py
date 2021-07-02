@@ -121,11 +121,8 @@ def getCleverReceipts(df0):
 def genFakeChartData(df0,name_list,price_dic):
     today=date.today().strftime("%Y%m%d")
     hospital="vatech"
-    patientID=fake.word(ext_word_list=patient_list)
-    name=fake.word(ext_word_list=name_list)
-    price = int(price_dic[name])
     spark = SparkSession.builder.appName("newdata").getOrCreate()
-    newRow=[[today,hospital,patientID,name,price]]
+    newRow=[]
     for i in range(150000):
         patientID=fake.word(ext_word_list=patient_list)
         name=fake.word(ext_word_list=name_list)
@@ -138,14 +135,8 @@ def genFakeChartData(df0,name_list,price_dic):
 def genFakeReceiptData(df0,exiting_dic):
     today=date.today().strftime("%Y%m%d")
     hospital="vatech"
-    patientID=fake.word(ext_word_list=patient_list)
     spark = SparkSession.builder.appName("newdata").getOrCreate()
-    if patientID in exiting_dic:
-        exiting = exiting_dic[patientID]
-    else:
-        exiting_dic[patientID]=2;
-        exiting = 1;
-    newRow=[[today,hospital,patientID,exiting]]
+    newRow=[]
     for i in range(150000):
         patientID=fake.word(ext_word_list=patient_list)
         if patientID in exiting_dic:
@@ -251,7 +242,7 @@ if __name__ == "__main__":
         exiting_dic = {row.patient:2 for row in df0.select("patient").collect()}
         df0 = genFakeReceiptData(df0,exiting_dic)
     df0.printSchema()
-
+    print(df0.count())
     if args.partitions:
         df0.coalesce(1).write.partitionBy(args.partitions.split(",")).format(
             args.outputformat
