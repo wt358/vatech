@@ -1,0 +1,6 @@
+# ignore data folders
+etl/*/
+!etl/tests/
+*.json
+
+.DS_Store
