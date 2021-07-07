@@ -10,6 +10,7 @@ from faker import Faker
 from faker.providers import internet
 from datetime import date
 from pandas import DataFrame
+from delta import *
 patient_list=[
             "5819294f-bd03-4f54-bf6a-1ceea59f331b",
             "79d30a59-3019-4aa9-b1f4-de716250f81e",
@@ -208,6 +209,8 @@ if __name__ == "__main__":
         .config("es.nodes", args.elasticsearch)
         .config("es.nodes.discovery", "true")
         .config("es.index.auto.create", "true")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .getOrCreate()
     )
     sq.sparkContext.setLogLevel(args.loglevel)
