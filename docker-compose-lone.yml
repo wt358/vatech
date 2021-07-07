@@ -1,15 +1,15 @@
 version: '2.1'
-services:
+services:                    #생성할 서비스 목록
   zookeeper:
     hostname: lonezk
-    image: zookeeper:3.4.9
+    image: zookeeper:3.4.9            #image file, 없으면 hub에서 자동으로 가져옴.
     ports:
       - "2184:2184"
-    environment:
+    environment:                      #환경 변수 설정
         ZOO_MY_ID: 4
         ZOO_PORT: 2184
         ZOO_SERVER: server.4=lonezk:2888:3888
-    volumes:
+    volumes:                          #디렉토리 마운트file
       - ./lonekafka/lonezk/data:/data
       - ./lonekafka/lonezk/datalog:/datalog
 
@@ -29,10 +29,10 @@ services:
       #KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
     volumes:
       - ./lonekafka/data:/var/lib/kafka/data
-    depends_on:
+    depends_on:               #lonezk 가 생성된 후에 lonekafka를 설치한다.
       - lonezk
 
-  kafdrop:
+  kafdrop:         #kafka broker를 모니터링하기 위한 UI
     image: obsidiandynamics/kafdrop
     restart: "no"
     ports:
