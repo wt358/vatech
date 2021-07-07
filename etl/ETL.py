@@ -67,14 +67,14 @@ if __name__=="__main__":
                      StructField("year", IntegerType(), True), StructField("month", IntegerType(), True), StructField("day", IntegerType(), True)]), True)]), True),
              StructField("payment", StringType(), True)])
 
-#인자
+# Set Arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--target", help="target info", default="chart")
     parser.add_argument("-if","--inputformat", help="input format", default="json")
     parser.add_argument("-of", "--outputformat", help="output format", default="parquet")
     parser.add_argument("-o", "--output", help="output path", default="parquet")
     args = parser.parse_args()
-
+    
     df = spark.read.format(args.inputformat).load("./data")
     spark.sparkContext.setLogLevel("ERROR")
     print("Original Data")
@@ -84,10 +84,12 @@ if __name__=="__main__":
     if args.target == "chart":
         df = getChart(df)
         df1 = df.groupBy("doctor").agg(count("patient_ID")).withColumnRenamed("count(patient_ID)", "patient_num")
+        # 의사별 환자 수
     elif args.target == "receipt":
         df = getReceipt(df)
         df1 = df.groupBy("hospital_name").sum("treatment_price").withColumnRenamed("sum(treatment_price)", "profit").\
           withColumnRenamed("hospital_name", "hospital")
+        # 병원별 수익
         print("Hospital Profit")
     print("Parsed Data")
     df.show(50)
@@ -95,4 +97,6 @@ if __name__=="__main__":
     print("Filtered Data")
     df1.show(50)
     df1.printSchema()
+
+    # Save ETL data
     df.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
