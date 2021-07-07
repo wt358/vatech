@@ -52,6 +52,8 @@ if __name__ == "__main__":
         .option("recursiveFileLookup", "true")
         .load("/".join([args.input] + args.partitions.split(",")))
     )
+    ts1 = timeit.default_timer()
+    print("loadtime = {}".format(ts1-ts0))
     print("chart data")
     df0.show(truncate=False)
     if os.path.exists("./parquet1"):
@@ -62,7 +64,6 @@ if __name__ == "__main__":
         )
         print("receipt data")
         df1.show(truncate=False)
-        print(df1.count())
         print(df1.where(df1["exiting"]=="1").count())
         print("join with patient id")
         df0.join(df1,df0["patient"]==df1["patient"]).where(df0["date"]==df1["date"]).select(df1["date"],df1["hospital"],df1["patient"],"name","price","exiting").where(df1["exiting"]==1).distinct().show(truncate=False)
