@@ -10,6 +10,7 @@ from faker import Faker
 from faker.providers import internet
 from datetime import date
 from pandas import DataFrame
+from delta import *
 patient_list=[
             "5819294f-bd03-4f54-bf6a-1ceea59f331b",
             "79d30a59-3019-4aa9-b1f4-de716250f81e",
@@ -121,19 +122,33 @@ def getCleverReceipts(df0):
 def genFakeChartData(df0,name_list,price_dic):
     today=date.today().strftime("%Y%m%d")
     hospital="vatech"
-    patientID=fake.word(ext_word_list=patient_list)
-    name=fake.word(ext_word_list=name_list)
-    price = int(price_dic[name])
     spark = SparkSession.builder.appName("newdata").getOrCreate()
-    newRow=[[today,hospital,patientID,name,price]]
-    for i in range(15000):
+    newRow=[]
+    for i in range(150000):
         patientID=fake.word(ext_word_list=patient_list)
         name=fake.word(ext_word_list=name_list)
         price = int(price_dic[name])
         newRow1=[today,hospital,patientID,name,price]
         newRow.append(newRow1)
     df1 = spark.createDataFrame(newRow,['date','hospital','patient','name','price'])
-    df0 = df0.union(df1)
+    df0 = df1.union(df0)
+    return df0
+def genFakeReceiptData(df0,exiting_dic):
+    today=date.today().strftime("%Y%m%d")
+    hospital="vatech"
+    spark = SparkSession.builder.appName("newdata").getOrCreate()
+    newRow=[]
+    for i in range(150000):
+        patientID=fake.word(ext_word_list=patient_list)
+        if patientID in exiting_dic:
+            exiting = exiting_dic[patientID]
+        else:
+            exiting_dic[patientID]=2;
+            exiting = 1;
+        newRow1=[today,hospital,patientID,exiting]
+        newRow.append(newRow1)
+    df1 = spark.createDataFrame(newRow,['date','hospital','patient','exiting'])
+    df0 = df1.union(df0)
     return df0
 
 if __name__ == "__main__":
@@ -194,6 +209,8 @@ if __name__ == "__main__":
         .config("es.nodes", args.elasticsearch)
         .config("es.nodes.discovery", "true")
         .config("es.index.auto.create", "true")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .getOrCreate()
     )
     sq.sparkContext.setLogLevel(args.loglevel)
@@ -220,10 +237,14 @@ if __name__ == "__main__":
 
     if args.target == "treats":
         df0 = getCleverChartTreats(df0)
+        name_list = [(row.name) for row in df0.select("name").collect()]
+        price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
+        df0=genFakeChartData(df0,name_list,price_dic)
     elif args.target == "receipt":
         df0 = getCleverReceipts(df0)
+        exiting_dic = {row.patient:2 for row in df0.select("patient").collect()}
+        df0 = genFakeReceiptData(df0,exiting_dic)
     df0.printSchema()
-
     df0.show(truncate=False)
     name_list = [(row.name) for row in df0.select("name").collect()]
 
@@ -233,6 +254,7 @@ if __name__ == "__main__":
     df0.orderBy("date",ascending=False).show(truncate=False)
     print(df0.count())
 '''
+    print(df0.count())
     if args.partitions:
         df0.coalesce(1).write.partitionBy(args.partitions.split(",")).format(
             args.outputformat
