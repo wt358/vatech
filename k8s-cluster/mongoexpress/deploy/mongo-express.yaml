@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: express-svc
+  namespace: mongodb
+spec:
+  selector:
+    app: mongo-express
+  ports:
+  - port: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  namespace: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: ME_CONFIG_MONGODB_SERVER
+          value: mongo-cluster-rs0-0.mongo-cluster-rs0.svc.cluster.local,mongo-cluster-rs0-1.mongo-cluster-rs0.svc.cluster.local,mongo-cluster-rs0-2.mongo-cluster-rs0.svc.cluster.local
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              key: MONGODB_CLUSTER_ADMIN_USER
+              name: mongo-cluster-secrets
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MONGODB_CLUSTER_ADMIN_PASSWORD
+              name: mongo-cluster-secrets
+        - name: ME_CONFIG_BASICAUTH_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: MONGODB_CLUSTER_ADMIN_USER
+              name: mongo-cluster-secrets
+        - name: ME_CONFIG_BASICAUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: MONGODB_CLUSTER_ADMIN_PASSWORD
+              name: mongo-cluster-secrets
+        - name: ME_CONFIG_SITE_SSL_ENABLED
+          value: 'false'
+        - name: ME_CONFIG_SITE_BASEURL
+          value: '/?replicaset=rs0'

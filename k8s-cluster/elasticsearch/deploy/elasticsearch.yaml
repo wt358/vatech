@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elastic-user
+  namespace: elasticsearch
+type: Opaque
+stringData:
+  users: |-
+    haruband: aGFydTEwMDQ=
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch-cluster
+  namespace: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  version: 7.13.2
+  http:
+    tls:
+      certificate:
+        selfSignedCertificate:
+          disabled: true
+  auth:
+    fileRealm:
+    - secretName: elastic-user
+  nodeSets:
+  - name: elasticsearch
+    count: 3
+    podTemplate:
+      spec:
+        initContainers:
+        - name: sysctl
+          securityContext:
+            privileged: true
+          command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        containers:
+        - name: elasticsearch
+          resources:
+            limits:
+              memory: 6Gi
+              cpu: 2
+            requests:
+              memory: 2Gi
+              cpu: 500m
+          readinessProbe:
+            exec:
+              command:
+              - bash
+              - -c
+              - /mnt/elastic-internal/scripts/readiness-probe-script.sh
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 12
+            successThreshold: 1
+            timeoutSeconds: 12
+          env:
+          - name: READINESS_PROBE_TIMEOUT
+            value: "10"
+        affinity:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: common.k8s.elastic.co/type
+                  operator: In
+                  values: 
+                  - elasticsearch
+              topologyKey: kubernetes.io/hostname
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "openebs-hostpath"
+        resources:
+          requests:
+            storage: 30Gi
+      
