@@ -99,7 +99,7 @@ if __name__ == "__main__":
     df2.explain(False)
     
     #이 부분은 parquet_faker1이라는 저장소가 존재해야됨.  parquet_faker1은 receipt data
-    '''
+    
     rec_df0=rec_df0.select("treatmentName","treatmentPrice")
     df3=df0.withColumn("newage",expr(
         "case when patientAge<10 then '0~10'"
@@ -121,8 +121,9 @@ if __name__ == "__main__":
     df2.join(rec_df0,rec_df0['treatmentName']==df2['treatmentName']).distinct().filter(col('newage').isNotNull()).filter(col('patientGender').isNotNull()).filter(df2['treatmentName'].isNotNull()).select('*',rank().over(window).alias('rank')).filter(col('rank')<=3).sort("newage","patientGender",col("count").desc()).show(120,truncate=False)
     window=Window.partitionBy(df3['newage'],df3['patientGender']).orderBy(df3['newage'],df3['patientGender'],df3['sum(treatmentPrice)'].desc())
     print("각 연령, 성별 가장 많은 매출을 낸 진료 탑 3")
-    df3.filter(col("newage").isNotNull()).filter(col("patientGender").isNotNull()).filter(col("treatmentName").isNotNull()).select('*',rank().over(window).alias('rank')).filter(col('rank')<=3).sort("newage","patientGender",col("sum(treatmentPrice)").desc()).show(120,truncate=False)
-    '''
+    df3=df3.filter(col("newage").isNotNull()).filter(col("patientGender").isNotNull()).filter(col("treatmentName").isNotNull()).select('*',rank().over(window).alias('rank')).filter(col('rank')<=3).sort("newage","patientGender",col("sum(treatmentPrice)").desc())
+    df3.show(120,False)
+    df3.explain(False)
     
 
 
