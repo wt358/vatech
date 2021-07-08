@@ -249,12 +249,7 @@ if __name__ == "__main__":
     df0.show(truncate=False)
     name_list = [(row.name) for row in df0.select("name").collect()]
 
-'''
-    price_dic = {row.name:row.price for row in df0.select("name","price").collect()}
-    df0=genFakeChartData(df0,name_list,price_dic)
-    df0.orderBy("date",ascending=False).show(truncate=False)
-    print(df0.count())
-'''
+    #df0.orderBy("date",ascending=False).show(truncate=False)
     print(df0.count())
     if args.partitions:
         df0.coalesce(1).write.partitionBy(args.partitions.split(",")).format(
