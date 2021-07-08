@@ -1,35 +1,10 @@
 import os
 import argparse
-from datetime import datetime
 from pyspark import SparkContext, SQLContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
-from pyspark.sql.functions import udf, col, from_json, flatten, explode
 
-
-def getCleverSchema(collection):
-    if collection.endswith("patient"):
-        schema = StructType(
-            [
-                StructField("id", StringType(), True),
-                StructField("hospitalId", StringType(), True),
-                StructField("sex", StringType(), True),
-                StructField("birthDate", DateType(), True),
-                StructField("newOrExistingPatient", StringType(), True),
-            ]
-        )
-        return schema
-
-
-def getCleverPatients(df0):
-    df0 = df0.select(
-        df0["id"].alias("patient"),
-        df0["hospitalId"].alias("hospital"),
-        df0["sex"],
-        df0["birthDate"].alias("birth"),
-        df0["newOrExistingPatient"].alias("exiting"),
-    )
-    return df0
+from clever import getCleverSchema, getCleverPatients
 
 
 if __name__ == "__main__":

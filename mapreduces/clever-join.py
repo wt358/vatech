@@ -47,9 +47,29 @@ if __name__ == "__main__":
     df0 = treatments.join(patients, "patient")
     df0.show(truncate=False)
 
-    df0.filter(df0["sex"] == "1").groupBy("name").count().orderBy(
-        "count", ascending=False
+    dq0 = (
+        df0.filter(df0["sex"] == "1")
+        .groupBy("name")
+        .count()
+        .orderBy("count", ascending=False)
+    )
+    dq0.explain(True)
+    dq0.show(truncate=False)
+    dq1 = (
+        df0.filter(df0["sex"] == "2")
+        .groupBy("name")
+        .count()
+        .orderBy("count", ascending=False)
+    )
+    dq1.explain(True)
+    dq1.show(truncate=False)
+
+    treatments.createOrReplaceTempView("treatments")
+    patients.createOrReplaceTempView("patients")
+
+    sq.sql(
+        "select name, count(name) as count from treatments inner join patients on treatments.patient = patients.patient where sex = 1 group by name order by count desc"
     ).show(truncate=False)
-    df0.filter(df0["sex"] == "2").groupBy("name").count().orderBy(
-        "count", ascending=False
+    sq.sql(
+        "select name, count(name) as count from treatments inner join patients on treatments.patient = patients.patient where sex = 2 group by name order by count desc"
     ).show(truncate=False)
