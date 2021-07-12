@@ -57,6 +57,7 @@ def getReceipt(df):
 if __name__=="__main__":
     sc = SparkContext("local","etl")
     spark=SparkSession.builder.appName("etl process").getOrCreate()
+    spark.SparkContext.setLogLevel("ERROR")
     schema = StructType([
              StructField("patient", StructType([
                  StructField("patientID", StringType(), True), StructField("age", IntegerType(), True), StructField("sex", StringType(), True)]), True),
@@ -70,7 +71,7 @@ if __name__=="__main__":
                      StructField("year", IntegerType(), True), StructField("month", IntegerType(), True), StructField("day", IntegerType(), True)]), True)]), True),
              StructField("payment", StringType(), True)])
 
-# Set Arguments
+# add argument rules
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--target", help="target info", default="chart")
     parser.add_argument("-if","--inputformat", help="input format", default="json")
@@ -94,6 +95,7 @@ if __name__=="__main__":
           withColumnRenamed("hospital_name", "hospital")
         # 병원별 수익
         print("Hospital Profit")
+
     print("Parsed Data")
     df.show(50)
     df.printSchema()
