@@ -1,6 +1,6 @@
 # ignore data folders
-etl/*/
-!etl/tests/
+*/
+!tests/
 *.json
 
 .DS_Store

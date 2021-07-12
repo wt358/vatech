@@ -1,3 +1,6 @@
+import time
+import timeit
+
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
@@ -94,9 +97,10 @@ if __name__=="__main__":
     print("Parsed Data")
     df.show(50)
     df.printSchema()
+
     print("Filtered Data")
     df1.show(50)
     df1.printSchema()
-
+    
     # Save ETL data
-    df.coalesce(1).write.format(args.outputformat).mode("overwrite").save(args.output)
+    df.coalesce(1).write.format(args.outputformat).option("header", "true").mode("overwrite").save(args.output)
