@@ -1,6 +1,7 @@
-# ignore data folders
+# ignore data folders and files
 */
-!tests/
 *.json
+# exception
+!etl/
 
 .DS_Store
