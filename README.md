@@ -1,4 +1,4 @@
-# Vatech_songhyun
+# Vatech songhyun
 
 ## 1. 전제
 Apache Spark가 설치되어 있어야 하며, 해당 코드를 spark-submit <code.py>를 이용해 실행한다.
@@ -17,7 +17,7 @@ SPARK_HOME/sbin/start-thriftserver.sh
 ```
 SPARK_HOME/bin/beeline
 ``` 
-을 통해 해당 서버에 접속한다. 
+을 통해 해당 서버에 접속한다. (혹은 spark-beeline)
 
 기본 포트는 10000이므로, 
 ```
