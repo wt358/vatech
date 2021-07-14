@@ -31,14 +31,19 @@ metadata:
     app: minio-tenant
   annotations:
     prometheus.io/path: /minio/v2/metrics/cluster
-    prometheus.io/port: "9000"
+    prometheus.io/port: "9090"
     prometheus.io/scrpae: "true"
 spec:
   requestAutoCert: false
   # certConfig:
-  #   commonName: ""
+  #   commonName: "minio.k8s.com"
   #   organizationName: []
-  #   dnsNames: []
+  #   dnsNames: 
+  #     - "minio.k8s.com"
+  #     - "minio-tenant-hl.minio-tenant.svc.cluster.local"
+  #     - "minio.minio-tenant.svc.cluster.local"
+  #     - "minio-tenant-hl"
+  #     - "minio"
   console:
     consoleSecret:
       name: minio-tenant-console-secret
@@ -94,9 +99,9 @@ spec:
           topologyKey: kubernetes.io/hostname
   serviceMetadata:
     minioServiceLabels:
-      label: minio-svc
+      label: minio
     minioServiceAnnotations:
-      v2.min.io: minio-svc
+      v2.min.io: minio
     consoleServiceLabels:
       label: console-svc
     consoleServiceAnnotations:
