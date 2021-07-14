@@ -1,0 +1,165 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: haruband-ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  # - port:
+  #     number: 443
+  #     name: https
+  #     protocol: HTTPS
+  #   hosts:
+  #   - "*.k8s.com"
+  #   tls:
+  #     mode: SIMPLE
+  #     credentialName: "gateway-credential"
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.k8s.com"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: mongo-ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 27017
+      name: tcp-mongo
+      protocol: TCP
+    hosts:
+    - "mongo.k8s.com"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: mysql-ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 3306
+      name: tcp-mysql
+      protocol: TCP
+    hosts:
+    - "mysql.k8s.com"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: elastic-virtual-service
+spec:
+  hosts:
+  - "elastic.k8s.com"
+  gateways:
+  - haruband-ingress-gateway
+  http:
+    - match:
+      - uri:
+          prefix: "/"
+      route:
+      - destination:
+          host: "elasticsearch-cluster-es-elasticsearch.elasticsearch.svc.cluster.local"
+          port:
+            number: 9200
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kibana-virtual-service
+spec:
+  hosts:
+  - "kibana.k8s.com"
+  gateways:
+  - haruband-ingress-gateway
+  http:
+    - match:
+      - uri:
+          prefix: "/"
+      route:
+      - destination:
+          host: "kibana-kb-http.elasticsearch.svc.cluster.local"
+          port:
+            number: 5601
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: minio-virtual-service
+spec:
+  hosts:
+  - "minio.k8s.com"
+  gateways:
+  - haruband-ingress-gateway
+  http:
+    - match:
+      - uri:
+          prefix: "/"
+      route:
+      - destination:
+          host: "minio.minio-tenant.svc.cluster.local"
+          port:
+            number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mongo-virtual-service
+spec:
+  hosts:
+  - "mongo.k8s.com"
+  gateways:
+  - mongo-ingress-gateway
+  tcp:
+    - match:
+      - port: 27017
+      route:
+      - destination:
+          host: "mongo-cluster-rs0.mongodb.svc.cluster.local"
+          port:
+            number: 27017
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mysql-virtual-service
+spec:
+  hosts:
+  - "mysql.k8s.com"
+  gateways:
+  - mysql-ingress-gateway
+  tcp:
+    - match:
+      - port: 3306
+      route:
+      - destination:
+          host: "mysqlcluster-pxc.mysql.svc.cluster.local"
+          port:
+            number: 3306
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: metabase-virtual-service
+spec:
+  hosts:
+  - "metabase.k8s.com"
+  gateways:
+  - haruband-ingress-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: "metabase.metabase.svc.cluster.local"
+        port:
+          number: 80
