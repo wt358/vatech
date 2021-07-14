@@ -7,6 +7,8 @@ type: Opaque
 stringData:
   users: |-
     haruband: aGFydTEwMDQ=
+  users_role: |-
+    power_user:haruband
 ---
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
@@ -19,17 +21,24 @@ spec:
   version: 7.13.2
   http:
     tls:
-      certificate:
-        selfSignedCertificate:
-          disabled: true
+      selfSignedCertificate:
+        disabled: true
   auth:
     fileRealm:
     - secretName: elastic-user
   nodeSets:
   - name: elasticsearch
     count: 3
+    config:
+      
     podTemplate:
+      metadata:
+        annotations:
+          traffic.sidecar.istio.io/includeInboundPorts: "*"
+          traffic.sidecar.istio.io/excludeOutboundPorts: "9300" 
+          traffic.sidecar.istio.io/excludeInboundPorts: "9300"
       spec:
+        automountServiceAccountToken: true
         initContainers:
         - name: sysctl
           securityContext:

@@ -7,8 +7,13 @@ spec:
   count: 1
   elasticsearchRef:
     name: elasticsearch-cluster
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   podTemplate:
     spec:
+      automountServiceAccountToken: true
       containers:
           - name: kibana
             env:
@@ -17,7 +22,7 @@ spec:
             resources:
               requests:
                 memory: 1Gi
-                cpu: 250mi
+                cpu: 250m
               limits:
                 memory: 2Gi
-                cpu: 250mi
+                cpu: 250m
