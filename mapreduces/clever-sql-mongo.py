@@ -56,7 +56,6 @@ if __name__ == "__main__":
         print("patient data")
         pat_df0.createOrReplaceTempView("patient")
         sq.sql("select* from patient where birth is not null and sex is not null and hospital is not null and patient is not null and exiting is not null").createOrReplaceTempView("patient")
-        sq.sql("select * from patient").show()
     else:
         print("there is no patient data")
         exit()
@@ -69,7 +68,6 @@ if __name__ == "__main__":
         print("receipt data")
         rec_df0.createOrReplaceTempView("receipt")
         sq.sql("select* from receipt where date is not null and hospital is not null and patient is not null and exiting is not null").createOrReplaceTempView("receipt")
-        sq.sql("select * from receipt").show()
     else:
         print("there is no receipt data")
         exit()
@@ -83,14 +81,13 @@ if __name__ == "__main__":
         print("chart data")
         trt_df0.createOrReplaceTempView("treatment")
         sq.sql("select* from treatment where date is not null and hospital is not null and patient is not null and name is not null and price is not null").createOrReplaceTempView("treatment")
-        sq.sql("select * from treatment").show()
     else:
         print("there is no treatment data")
         exit()
 
 
     ts1 = timeit.default_timer()
-    print("loadtime = {}".format(ts1-ts0))
+    loadtime=ts1-ts0
     sq.sql("select patient,hospital, sex as patientGender,birth,exiting,floor(datediff(current_date(),birth)/365.25) as patientAge  from patient").createOrReplaceTempView("df0")
     sq.sql("select *, case when patientAge<10 then '0~10'when patientAge<20 then '10~20'when patientAge<30 then '20~30'when patientAge<40 then '30~40'when patientAge<50 then '40~50'when patientAge<60 then '50~60'when patientAge<70 then '60~70'when patientAge<80 then '70~80' when patientAge<90 then '80~90' when patientAge<100 then '90~100' else 'Very Old' end as newage from df0").createOrReplaceTempView("df0")
     sq.sql("select * from df0").show()
@@ -137,5 +134,6 @@ if __name__ == "__main__":
     sq.sql("explain select*from df_join1").show(truncate=False)
     print("df5 explain(처음방문한 사람이 받은 진료 매출 랭킹)")
     sq.sql("explain select*from df_join2").show(truncate=False)
-
+    
+    print("loadtime = {}".format(loadtime))
     print("runtime={}".format(ts1 - ts0))

@@ -55,7 +55,7 @@ if __name__ == "__main__":
         )
         print("patient data")
         pat_df0=pat_df0.na.drop()
-        pat_df0.show()
+        print(pat_df0.count())
     else:
         print("there is no patient data")
         exit()
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 )
         print("receipt data")
         rec_df0=rec_df0.na.drop()
-        rec_df0.show()
+        print(rec_df0.count())
     else:
         print("there is no receipt data")
         exit()
@@ -81,15 +81,15 @@ if __name__ == "__main__":
                 )
         print("chart data")
         trt_df0=trt_df0.na.drop()
-        trt_df0.show()
+        print(trt_df0.count())
     else:
         print("there is no treatment data")
         exit()
 
     ts1 = timeit.default_timer()
-    print("loadtime = {}".format(ts1-ts0))
-    pat_df0=pat_df0.withColumn("patientAge",(datediff(current_date(),col("birth"))/365.25).cast(IntegerType()))
+    loadtime=ts1-ts0
     pat_df0=pat_df0.withColumn("patientGender",pat_df0["sex"]).drop("sex")
+    pat_df0=pat_df0.withColumn("patientAge",(datediff(current_date(),col("birth"))/365.25).cast(IntegerType()))
     pat_df0.orderBy("patientAge",asceding=True).show(truncate=False)
     df0=pat_df0.withColumn("newage",expr(
         "case when patientAge<10 then '0~10'"
@@ -109,7 +109,6 @@ if __name__ == "__main__":
     print("각 연령, 성별 등 방문 인원 수")
     df1.show()
     df_join0=df0.join(trt_df0,"patient")
-    df_join0.printSchema()
     df_join0=df_join0.distinct()
     df_join0.show()
     df2=df_join0.cube("newage","patientGender","name").count().sort("newage","patientGender",col("count").desc())
@@ -155,4 +154,5 @@ if __name__ == "__main__":
     print("df5 explain(처음방문한 사람이 받은 진료 매출 랭킹)")
     df_join2.explain(False)
 
+    print("loadtime = {}".format(loadtime))
     print("runtime={}".format(ts1 - ts0))
