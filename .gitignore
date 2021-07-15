@@ -5,3 +5,4 @@
 !etl/
 
 .DS_Store
+*.log
