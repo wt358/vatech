@@ -3,6 +3,7 @@
 *.json
 # exception
 !etl/
+!etl/*/
 
 .DS_Store
 *.log

@@ -9,7 +9,6 @@ spark = SparkSession.builder\
   .config("spark.driver.extraClassPath",
     "$SPARK_HOME/jars/mysql-connector-java-8.0.25.jar")\
   .getOrCreate()
-
 spark.sparkContext.setLogLevel("ERROR")
 
 sql_url = "localhost"
@@ -25,10 +24,10 @@ start = timeit.default_timer()
 
 jdbc.write.format("jdbc")\
   .option("driver", "com.mysql.cj.jdbc.Driver")\
-  .option("url", "jdbc:mysql://{}:3306/{}?serverTimezone=Asia/Seoul".format(sql_url, database))\
-  .option("user", user)\
-  .option("password", password)\
-  .option("dbtable", table)\
+  .option("url", "jdbc:mysql://mysql.it.vsmart00.com:3306/faker?serverTimezone=Asia/Seoul&useServerPrepStmts=false&rewriteBatchedStatements=true")\
+  .option("user", "root")\
+  .option("password", "haru1004")\
+  .option("dbtable", "dummy_clever")\
   .mode("overwrite")\
   .save()
 
@@ -36,13 +35,13 @@ end = timeit.default_timer()
 
 print(str(end - start) + " time.")
 
-# upload to mysql cluster -> took about 8 minutes
-# jdbc.write.format("jdbc")\
-#   .option("driver", "com.mysql.cj.jdbc.Driver")\
-#   .option("url", "jdbc:mysql://mysql.k8s.com:3306/faker?serverTimezone=Asia/Seoul")\
-#   .option("user", "root")\
-#   .option("password", "haru1004")\
-#   .option("dbtable", "dummy_clever")\
-#   .mode("overwrite")\
-#   .save()
-
+'''
+jdbc.write.format("jdbc")\
+  .option("driver", "com.mysql.cj.jdbc.Driver")\
+  .option("url", "jdbc:mysql://{}:3306/{}?serverTimezone=Asia/Seoul&useServerPrepStmts=false&rewriteBatchedStatements=true".format(sql_url, database))\
+  .option("user", user)\
+  .option("password", password)\
+  .option("dbtable", table)\
+  .mode("overwrite")\
+  .save()
+'''
