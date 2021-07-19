@@ -41,7 +41,7 @@ if __name__ == "__main__":
     sq.sql("select name, count(name) as count from clever group by name").show(
         truncate=False
     )
-    sq.sql("select name, sum(price) as count from clever group by name").show(
+    sq.sql("select name, sum(price) as sum from clever group by name").show(
         truncate=False
     )
 

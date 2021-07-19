@@ -53,10 +53,10 @@ def getCleverSchema(collection):
                 StructField("patient", StringType(), False),
                 StructField("type", StringType(), False),
                 StructField(
-                    "date", StructType([StructField("$date", IntegerType(), False)])
+                    "date",  TimestampType(), False
                 ),
                 StructField(
-                    "content", StructType([StructField("tx", txSchema, False)]), False
+                    "content", StructType([StructField("tx", txSchema, True)]), True
                 ),
                 StructField("lastModifiedTime", IntegerType(), False),
             ]
@@ -68,8 +68,7 @@ def getCleverSchema(collection):
                 StructField("hospitalId", StringType(), False),
                 StructField("patient", StringType(), False),
                 StructField(
-                    "receiptDate",
-                    StructType([StructField("$date", IntegerType(), False)]),
+                    "receiptDate", TimestampType(), False,
                 ),
                 StructField("status", StringType(), False),
                 StructField("newOrExistingPatient", StringType(), False),
@@ -96,6 +95,48 @@ def getCleverSchema(collection):
         return schema
 
 
+def getCleverChartTreats(df0):
+    timestamptodate = udf(lambda d: d.strftime("%Y%m%d"))
+
+    df0 = df0.filter(df0["type"] == "TX")
+    df0 = df0.withColumn("date1", timestamptodate(df0["date"]))
+    df0 = df0.withColumn(
+        "treats", explode(flatten(df0["content.tx.treatments.treats"]))
+    )
+    df0 = df0.withColumn("name", df0["treats.name"])
+    df0 = df0.withColumn("price", df0["treats.price"])
+    df0 = df0.select(
+        df0["date1"].alias("date"),
+        df0["hospitalId"].alias("hospital"),
+        df0["patient"],
+        df0["name"],
+        df0["price"],
+    ).orderBy("date", ascending=False)
+    return df0
+
+
+def getCleverReceipts(df0):
+    timestamptodate = udf(lambda d: d.strftime("%Y%m%d"))
+
+    df0 = df0.withColumn("date", timestamptodate(df0["receiptDate"]))
+    df0 = df0.select(
+        df0["date"],
+        df0["hospitalId"].alias("hospital"),
+        df0["patient"],
+        df0["newOrExistingPatient"].alias("exiting"),
+    ).orderBy("date", ascending=False)
+    return df0
+
+
+def getCleverPatients(df0):
+    df0 = df0.select(
+        df0["id"].alias("patient"),
+        df0["hospitalId"].alias("hospital"),
+        df0["sex"],
+        df0["birthDate"].alias("birth"),
+        df0["newOrExistingPatient"].alias("exiting"),
+    )
+    return df0
 def getCleverTable(df0, schema):
     if schema.endswith("chart"):
         df0 = df0.filter(df0["type"] == "TX")
