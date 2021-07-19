@@ -31,7 +31,7 @@ metadata:
     app: minio-tenant
   annotations:
     prometheus.io/path: /minio/v2/metrics/cluster
-    prometheus.io/port: "9090"
+    prometheus.io/port: "9000"
     prometheus.io/scrpae: "true"
 spec:
   requestAutoCert: false
@@ -97,6 +97,9 @@ spec:
               values:
                 - pool-0
           topologyKey: kubernetes.io/hostname
+  env:
+    - name: MINIO_PROMETHEUS_AUTH_TYPE
+      value: "public"
   serviceMetadata:
     minioServiceLabels:
       label: minio
