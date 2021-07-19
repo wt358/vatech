@@ -68,22 +68,20 @@ spec:
             storage: 30Gi
 
   sharding:
-    enabled: false
+    enabled: true
 
     configsvrReplSet:
       size: 3
       affinity:
         antiAffinityTopologyKey: "kubernetes.io/hostname"
-#        advanced:
-#          nodeAffinity:
-#            requiredDuringSchedulingIgnoredDuringExecution:
-#              nodeSelectorTerms:
-#              - matchExpressions:
-#                - key: kubernetes.io/e2e-az-name
-#                  operator: In
-#                  values:
-#                  - e2e-az1
-#                  - e2e-az2
+        advanced:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - preference:
+                  matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                weight: 10
       podDisruptionBudget:
         maxUnavailable: 1
       resources:
@@ -97,22 +95,20 @@ spec:
         persistentVolumeClaim:
           resources:
             requests:
-              storage: 3Gi
+              storage: 10Gi
 
     mongos:
       size: 3
       affinity:
         antiAffinityTopologyKey: "kubernetes.io/hostname"
-#        advanced:
-#          nodeAffinity:
-#            requiredDuringSchedulingIgnoredDuringExecution:
-#              nodeSelectorTerms:
-#              - matchExpressions:
-#                - key: kubernetes.io/e2e-az-name
-#                  operator: In
-#                  values:
-#                  - e2e-az1
-#                  - e2e-az2
+        advanced:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - preference:
+                  matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                weight: 10
       podDisruptionBudget:
         maxUnavailable: 1
       resources:
