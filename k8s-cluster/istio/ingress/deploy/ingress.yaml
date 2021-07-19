@@ -6,6 +6,12 @@ spec:
   selector:
     istio: ingressgateway # use Istio default gateway implementation
   servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*.it.vsmart00.com"
   # - port:
   #     number: 443
   #     name: https
@@ -15,12 +21,6 @@ spec:
   #   tls:
   #     mode: SIMPLE
   #     credentialName: "gateway-credential"
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*.k8s.com"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
@@ -35,7 +35,7 @@ spec:
       name: tcp-mongo
       protocol: TCP
     hosts:
-    - "mongo.k8s.com"
+    - "mongo.it.vsmart00.com"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
@@ -50,7 +50,7 @@ spec:
       name: tcp-mysql
       protocol: TCP
     hosts:
-    - "mysql.k8s.com"
+    - "mysql.it.vsmart00.com"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -58,7 +58,7 @@ metadata:
   name: elastic-virtual-service
 spec:
   hosts:
-  - "elastic.k8s.com"
+  - "elastic.it.vsmart00.com"
   gateways:
   - haruband-ingress-gateway
   http:
@@ -77,7 +77,7 @@ metadata:
   name: kibana-virtual-service
 spec:
   hosts:
-  - "kibana.k8s.com"
+  - "kibana.it.vsmart00.com"
   gateways:
   - haruband-ingress-gateway
   http:
@@ -96,7 +96,7 @@ metadata:
   name: minio-virtual-service
 spec:
   hosts:
-  - "minio.k8s.com"
+  - "minio.it.vsmart00.com"
   gateways:
   - haruband-ingress-gateway
   http:
@@ -115,7 +115,7 @@ metadata:
   name: mongo-virtual-service
 spec:
   hosts:
-  - "mongo.k8s.com"
+  - "mongo.it.vsmart00.com"
   gateways:
   - mongo-ingress-gateway
   tcp:
@@ -123,7 +123,7 @@ spec:
       - port: 27017
       route:
       - destination:
-          host: "mongo-cluster-rs0.mongodb.svc.cluster.local"
+          host: "mongo-cluster-mongos.mongodb.svc.cluster.local"
           port:
             number: 27017
 ---
@@ -133,7 +133,7 @@ metadata:
   name: mysql-virtual-service
 spec:
   hosts:
-  - "mysql.k8s.com"
+  - "mysql.it.vsmart00.com"
   gateways:
   - mysql-ingress-gateway
   tcp:
@@ -151,7 +151,7 @@ metadata:
   name: metabase-virtual-service
 spec:
   hosts:
-  - "metabase.k8s.com"
+  - "metabase.it.vsmart00.com"
   gateways:
   - haruband-ingress-gateway
   http:
