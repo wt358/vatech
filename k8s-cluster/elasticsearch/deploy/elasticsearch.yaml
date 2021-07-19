@@ -37,6 +37,8 @@ spec:
           traffic.sidecar.istio.io/includeInboundPorts: "*"
           traffic.sidecar.istio.io/excludeOutboundPorts: "9300" 
           traffic.sidecar.istio.io/excludeInboundPorts: "9300"
+        labels:
+          app: elasticsearch
       spec:
         automountServiceAccountToken: true
         initContainers:

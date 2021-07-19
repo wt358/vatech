@@ -12,6 +12,10 @@ spec:
       selfSignedCertificate:
         disabled: true
   podTemplate:
+    metadata:
+      labels:
+        app: elasticsearch
+        
     spec:
       automountServiceAccountToken: true
       containers:
