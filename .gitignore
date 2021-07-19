@@ -1,1 +1,2 @@
 k8s-cluster/benchmark/**/*.json
+k8s-cluster/benchmark/result
