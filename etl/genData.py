@@ -6,6 +6,7 @@ from datetime import datetime
 from faker import Faker
 import random
 import argparse
+import timeit
 
 if __name__=="__main__":
     sc = SparkContext("local","fake data")
